@@ -25,10 +25,15 @@ os.environ["DATA_DIR"] = "/kaggle/working/open_webui_data"
 os.environ["WEBUI_AUTH"] = "False"  # Desativa login inicial para acesso direto
 
 env = os.environ.copy()
+OLLAMA_LOG = "/kaggle/working/ollama.log"
+OPEN_WEBUI_LOG = "/kaggle/working/open-webui.log"
+
+ollama_log_file = open(OLLAMA_LOG, "w", buffering=1)
+webui_log_file = open(OPEN_WEBUI_LOG, "w", buffering=1)
 
 # 3. Instalar pacotes de sistema, Ollama, Open WebUI e Cloudflared
 print("\n[2/6] Instalando dependências, Ollama, Open WebUI e Cloudflared...")
-!sudo apt-get upgrade -y && sudo apt-get update -qq -y && sudo apt-get install -y -qq zstd wget lshw > /dev/null 2>&1
+!sudo apt-get update -qq -y && sudo apt-get install -y -qq zstd wget lshw > /dev/null 2>&1
 !curl -fsSL https://ollama.com/install.sh | sh > /dev/null 2>&1
 !sudo pip install -q uv && sudo uv pip install --system -q open-webui
 
@@ -40,10 +45,18 @@ print("\n[3/6] Iniciando daemon do Ollama...")
 ollama_proc = subprocess.Popen(
     ["sudo", "ollama", "serve"],
     env=env,
-    stdout=subprocess.DEVNULL,
-    stderr=subprocess.DEVNULL
+    stdout=ollama_log_file,
+    stderr=subprocess.STDOUT
 )
 time.sleep(5)
+
+if ollama_proc.poll() is not None:
+    ollama_log_file.flush()
+    print("\n❌ Ollama falhou ao iniciar:")
+    !tail -n 100 /kaggle/working/ollama.log
+    raise RuntimeError(
+        f"Ollama encerrou com código {ollama_proc.returncode}"
+    )
 
 # 5. Baixar o modelo Gemma 4 E4B
 MODEL = "gemma4:e4b"
@@ -65,6 +78,14 @@ webui_proc = subprocess.Popen(
 )
 time.sleep(10)
 
+if webui_proc.poll() is not None:
+    webui_log_file.flush()
+    print("\n❌ Open WebUI falhou ao iniciar:")
+    !tail -n 100 /kaggle/working/open-webui.log
+    raise RuntimeError(
+        f"Open WebUI encerrou com código {webui_proc.returncode}"
+    )
+    
 # 7. Criar túnel Cloudflare para a porta 8080 do Open WebUI
 print("\n[6/6] Criando túnel público HTTPS Cloudflare...")
 tunnel_proc = subprocess.Popen(
