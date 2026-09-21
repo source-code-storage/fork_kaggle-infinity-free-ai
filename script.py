@@ -38,7 +38,7 @@ print("\n[2/6] Instalando dependências, Ollama, Open WebUI e Cloudflared...")
 # 4. Iniciar o daemon do Ollama
 print("\n[3/6] Iniciando daemon do Ollama...")
 ollama_proc = subprocess.Popen(
-    ["ollama", "serve"],
+    ["sudo", "ollama", "serve"],
     env=env,
     stdout=subprocess.DEVNULL,
     stderr=subprocess.DEVNULL
@@ -48,7 +48,7 @@ time.sleep(5)
 # 5. Baixar o modelo Gemma 4 E4B
 MODEL = "gemma4:e4b"
 print(f"\n[4/6] Baixando {MODEL} no Ollama...")
-pull_res = subprocess.run(f"ollama pull {MODEL}", shell=True)
+pull_res = subprocess.run(f"sudo ollama pull {MODEL}", shell=True)
 if pull_res.returncode != 0:
     # Fallback caso a tag na biblioteca use variação de nomenclatura
     MODEL = "gemma4:4b"
@@ -58,7 +58,7 @@ if pull_res.returncode != 0:
 # 6. Iniciar o servidor Open WebUI na porta 8080
 print("\n[5/6] Iniciando interface Open WebUI...")
 webui_proc = subprocess.Popen(
-    ["open-webui", "serve", "--port", "8080"],
+    ["sudo", "open-webui", "serve", "--port", "8080"],
     env=env,
     stdout=subprocess.DEVNULL,
     stderr=subprocess.DEVNULL
@@ -69,7 +69,7 @@ time.sleep(10)
 print("\n[6/6] Criando túnel público HTTPS Cloudflare...")
 tunnel_proc = subprocess.Popen(
     [
-        "cloudflared", "tunnel",
+        "sudo", "cloudflared", "tunnel",
         "--url", "http://127.0.0.1:8080",
         "--http-host-header", "localhost"
     ],
