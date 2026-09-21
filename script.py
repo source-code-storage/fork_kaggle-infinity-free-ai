@@ -28,12 +28,12 @@ env = os.environ.copy()
 
 # 3. Instalar pacotes de sistema, Ollama, Open WebUI e Cloudflared
 print("\n[2/6] Instalando dependências, Ollama, Open WebUI e Cloudflared...")
-!apt-get update -qq && apt-get install -y -qq zstd wget > /dev/null 2>&1
+!sudo apt-get upgrade -y && sudo apt-get update -qq -y && sudo apt-get install -y -qq zstd wget lshw > /dev/null 2>&1
 !curl -fsSL https://ollama.com/install.sh | sh > /dev/null 2>&1
-!pip install -q open-webui
+!sudo pip install -q uv && sudo uv pip install --system -q open-webui
 
 !wget -q -nc https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-!dpkg -i cloudflared-linux-amd64.deb > /dev/null 2>&1
+!sudo dpkg -i cloudflared-linux-amd64.deb > /dev/null 2>&1
 
 # 4. Iniciar o daemon do Ollama
 print("\n[3/6] Iniciando daemon do Ollama...")
